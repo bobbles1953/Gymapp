@@ -1,6 +1,6 @@
 // Gym Log service worker: precache the app shell, serve it cache-first so the
 // app works fully offline. Bump CACHE_VERSION whenever any shell file changes.
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE = `gymapp-${CACHE_VERSION}`;
 const SHELL = [
   './',

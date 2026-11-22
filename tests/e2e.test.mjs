@@ -56,6 +56,36 @@ async function axeScan(page) {
   });
 }
 
+test('Enter moves between fields and does not validate early', async () => {
+  const { context, page } = await freshPage();
+  await page.fill('#f-exercise', 'Bench press');
+  await page.press('#f-exercise', 'Enter');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'set-1-reps');
+  await page.keyboard.type('5');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'set-1-weight');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'f-notes');
+  assert.equal(await page.locator('[aria-invalid="true"]').count(), 0);
+  assert.equal(await page.isVisible('#log-errors'), false);
+  assert.equal(await page.isVisible('#log-result'), false, 'nothing was saved');
+  await context.close();
+});
+
+test('errors clear as each field is corrected', async () => {
+  const { context, page } = await freshPage();
+  await page.click('#log-form button[type="submit"]');
+  assert.equal(await page.locator('[aria-invalid="true"]').count(), 3);
+  await page.fill('#f-exercise', 'Row');
+  assert.equal(await page.isVisible('#f-exercise-error'), false);
+  await page.fill('#set-1-reps', '8');
+  assert.equal(await page.isVisible('#set-rows .field-error'), true, 'weight still missing');
+  await page.fill('#set-1-weight', '40');
+  assert.equal(await page.isVisible('#set-rows .field-error'), false);
+  assert.equal(await page.isVisible('#log-errors'), false);
+  await context.close();
+});
+
 test('validation errors are announced and linked', async () => {
   const { context, page } = await freshPage();
   assert.equal(await page.isVisible('.remove-set'), false, 'a lone set cannot be removed');

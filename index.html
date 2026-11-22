@@ -65,14 +65,14 @@
       <form id="log-form" novalidate>
         <div class="field">
           <label for="f-date">Date</label>
-          <input id="f-date" name="date" type="date" required aria-describedby="f-date-error">
+          <input id="f-date" name="date" type="date" required enterkeyhint="next" aria-describedby="f-date-error">
           <p id="f-date-error" class="field-error" hidden></p>
         </div>
 
         <div class="field">
           <label for="f-exercise">Exercise</label>
           <p id="f-exercise-hint" class="hint">For example, Back squat. Pick a previous exercise from the suggestions to keep history together.</p>
-          <input id="f-exercise" name="exercise" type="text" required maxlength="100"
+          <input id="f-exercise" name="exercise" type="text" required maxlength="100" enterkeyhint="next"
                  autocomplete="off" list="exercise-list" aria-describedby="f-exercise-hint f-exercise-error">
           <datalist id="exercise-list"></datalist>
           <p id="f-exercise-error" class="field-error" hidden></p>
@@ -200,11 +200,11 @@
       <span class="set-label"></span>
       <div class="field field-inline">
         <label data-for="reps">Reps</label>
-        <input data-name="reps" type="number" inputmode="numeric" min="1" max="1000" step="1" required>
+        <input data-name="reps" type="number" inputmode="numeric" min="1" max="1000" step="1" required enterkeyhint="next">
       </div>
       <div class="field field-inline">
         <label data-for="weight">Weight</label>
-        <input data-name="weight" type="number" inputmode="decimal" min="0" max="2000" step="any" required>
+        <input data-name="weight" type="number" inputmode="decimal" min="0" max="2000" step="any" required enterkeyhint="next">
       </div>
       <button type="button" class="button button-secondary button-small remove-set"></button>
       <p class="field-error" hidden></p>

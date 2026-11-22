@@ -633,6 +633,26 @@ async function init() {
   resetLogForm();
 
   $('#log-form').addEventListener('submit', onSaveWorkout);
+  // Enter/Return (or "Go" on a phone keyboard) in a field moves to the next
+  // field instead of submitting, so validation only runs on "Save workout".
+  $('#log-form').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || e.target.tagName !== 'INPUT' || e.isComposing) return;
+    e.preventDefault();
+    const fields = [...$('#log-form').querySelectorAll('input, textarea')]
+      .filter((f) => f.offsetParent !== null && !f.disabled);
+    const next = fields[fields.indexOf(e.target) + 1];
+    (next || $('#log-form button[type="submit"]')).focus();
+  });
+  // Once a field has been flagged, clear its error as soon as the user edits it.
+  $('#log-form').addEventListener('input', (e) => {
+    const f = e.target;
+    if (f.getAttribute('aria-invalid') !== 'true') return;
+    f.removeAttribute('aria-invalid');
+    const row = f.closest('.set-row');
+    const err = row ? row.querySelector('.field-error') : $(`#${f.id}-error`);
+    if (err && !(row && row.querySelector('[aria-invalid="true"]'))) { err.hidden = true; err.textContent = ''; }
+    if (!$('#log-form [aria-invalid="true"]')) $('#log-errors').hidden = true;
+  });
   $('#add-set').addEventListener('click', () => {
     const rows = setRows();
     const last = rows[rows.length - 1];
