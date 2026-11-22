@@ -1,0 +1,17 @@
+{
+  "name": "gymapp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Single-user, offline gym tracking PWA. Plain HTML/CSS/JS, no build step.",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "test": "node --test --test-reporter=spec tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "4.14.0",
+    "playwright": "1.63.0"
+  },
+  "engines": { "node": ">=20" }
+}

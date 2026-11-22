@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log a workout – Gym Log</title>
+  <meta name="description" content="A private, offline gym tracker. Your data stays on this device.">
+  <meta name="theme-color" content="#0b5cad" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121417" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <p class="app-name"><a href="#log">Gym Log</a></p>
+      <nav aria-label="Main">
+        <ul class="nav-list">
+          <li><a href="#log" data-route="log">Log</a></li>
+          <li><a href="#history" data-route="history">History</a></li>
+          <li><a href="#bests" data-route="bests">Bests</a></li>
+          <li><a href="#backup" data-route="backup">Backup</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="wrap banners">
+    <div id="backup-reminder" class="banner banner-warn" hidden>
+      <p id="backup-reminder-text"></p>
+      <div class="banner-actions">
+        <a class="button" href="#backup">Back up now</a>
+        <button type="button" class="button button-secondary" id="snooze-reminder">Remind me tomorrow</button>
+      </div>
+    </div>
+    <div id="update-banner" class="banner" hidden>
+      <p>A new version of Gym Log is ready.</p>
+      <div class="banner-actions">
+        <button type="button" class="button" id="apply-update">Reload to update</button>
+      </div>
+    </div>
+    <noscript><p class="banner banner-warn">Gym Log needs JavaScript to run.</p></noscript>
+  </div>
+
+  <!-- One shared polite live region for confirmations ("Saved", "Deleted", …). -->
+  <div id="announcer" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <main id="main" class="wrap" tabindex="-1">
+
+    <!-- ============ LOG ============ -->
+    <section id="view-log" data-view="log" aria-labelledby="log-heading">
+      <h1 id="log-heading" tabindex="-1">Log a workout</h1>
+
+      <div id="log-errors" class="error-summary" tabindex="-1" hidden>
+        <h2>There is a problem</h2>
+        <ul id="log-error-list"></ul>
+      </div>
+
+      <form id="log-form" novalidate>
+        <div class="field">
+          <label for="f-date">Date</label>
+          <input id="f-date" name="date" type="date" required aria-describedby="f-date-error">
+          <p id="f-date-error" class="field-error" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="f-exercise">Exercise</label>
+          <p id="f-exercise-hint" class="hint">For example, Back squat. Pick a previous exercise from the suggestions to keep history together.</p>
+          <input id="f-exercise" name="exercise" type="text" required maxlength="100"
+                 autocomplete="off" list="exercise-list" aria-describedby="f-exercise-hint f-exercise-error">
+          <datalist id="exercise-list"></datalist>
+          <p id="f-exercise-error" class="field-error" hidden></p>
+        </div>
+
+        <fieldset class="sets-fieldset">
+          <legend>Sets <span class="legend-unit">(weight in <span data-unit-label>kg</span>)</span></legend>
+          <p class="hint" id="sets-hint">Enter 0 for weight on bodyweight exercises. “Add set” copies the previous set.</p>
+          <div id="set-rows" class="set-rows"></div>
+          <button type="button" class="button button-secondary" id="add-set">Add set</button>
+        </fieldset>
+
+        <div class="field">
+          <label for="f-notes">Notes <span class="optional">(optional)</span></label>
+          <textarea id="f-notes" name="notes" rows="2" maxlength="500"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="button">Save workout</button>
+        </div>
+      </form>
+
+      <div id="log-result" class="result" tabindex="-1" hidden></div>
+
+      <h2 id="recent-heading">Recent entries</h2>
+      <div id="recent-list"></div>
+    </section>
+
+    <!-- ============ HISTORY ============ -->
+    <section id="view-history" data-view="history" aria-labelledby="history-heading" hidden>
+      <h1 id="history-heading" tabindex="-1">History</h1>
+      <div class="field">
+        <label for="history-exercise">Exercise</label>
+        <select id="history-exercise"></select>
+      </div>
+      <div id="history-content"></div>
+    </section>
+
+    <!-- ============ BESTS ============ -->
+    <section id="view-bests" data-view="bests" aria-labelledby="bests-heading" hidden>
+      <h1 id="bests-heading" tabindex="-1">Personal bests</h1>
+      <p class="hint">Estimated one-rep max uses the Epley formula on sets of 1 to 12 reps.</p>
+      <div id="bests-content"></div>
+    </section>
+
+    <!-- ============ BACKUP ============ -->
+    <section id="view-backup" data-view="backup" aria-labelledby="backup-heading" hidden>
+      <h1 id="backup-heading" tabindex="-1">Backup and settings</h1>
+
+      <section aria-labelledby="export-heading" class="card">
+        <h2 id="export-heading">Export</h2>
+        <p>Your data is stored only in this browser. Export a backup file regularly and keep it somewhere safe, or use it to move your data to another device.</p>
+        <p id="last-backup-text"></p>
+        <button type="button" class="button" id="export-btn">Export backup (JSON)</button>
+      </section>
+
+      <section aria-labelledby="import-heading" class="card">
+        <h2 id="import-heading">Import</h2>
+        <form id="import-form" novalidate>
+          <div class="field">
+            <label for="import-file">Backup file</label>
+            <input id="import-file" type="file" accept="application/json,.json" aria-describedby="import-file-error">
+            <p id="import-file-error" class="field-error" hidden></p>
+          </div>
+          <fieldset>
+            <legend>How to import</legend>
+            <div class="radio">
+              <input type="radio" id="import-merge" name="import-mode" value="merge" checked aria-describedby="import-merge-hint">
+              <label for="import-merge">Merge with existing data</label>
+              <p class="hint" id="import-merge-hint">Adds new entries and updates entries with the same ID.</p>
+            </div>
+            <div class="radio">
+              <input type="radio" id="import-replace" name="import-mode" value="replace" aria-describedby="import-replace-hint">
+              <label for="import-replace">Replace all existing data</label>
+              <p class="hint" id="import-replace-hint">Deletes everything on this device first.</p>
+            </div>
+          </fieldset>
+          <button type="submit" class="button">Import</button>
+        </form>
+        <div id="import-result" class="result" tabindex="-1" hidden></div>
+      </section>
+
+      <section aria-labelledby="settings-heading" class="card">
+        <h2 id="settings-heading">Settings</h2>
+        <div class="field">
+          <label for="setting-unit">Weight unit</label>
+          <select id="setting-unit">
+            <option value="kg">Kilograms (kg)</option>
+            <option value="lb">Pounds (lb)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="setting-reminder">Backup reminder</label>
+          <select id="setting-reminder">
+            <option value="3">After 3 days</option>
+            <option value="7">After 7 days</option>
+            <option value="14">After 14 days</option>
+            <option value="30">After 30 days</option>
+            <option value="0">Never remind me</option>
+          </select>
+        </div>
+      </section>
+
+      <section aria-labelledby="storage-heading" class="card">
+        <h2 id="storage-heading">Storage</h2>
+        <p id="storage-status">Checking storage…</p>
+        <button type="button" class="button button-secondary" id="persist-btn" hidden>Ask to keep data permanently</button>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <form method="dialog">
+      <h2 id="confirm-title">Are you sure?</h2>
+      <p id="confirm-message"></p>
+      <div class="form-actions">
+        <button type="submit" value="cancel" class="button button-secondary" id="confirm-cancel">Cancel</button>
+        <button type="submit" value="confirm" class="button button-danger" id="confirm-ok">Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="set-row-template">
+    <div class="set-row" role="group">
+      <span class="set-label"></span>
+      <div class="field field-inline">
+        <label data-for="reps">Reps</label>
+        <input data-name="reps" type="number" inputmode="numeric" min="1" max="1000" step="1" required>
+      </div>
+      <div class="field field-inline">
+        <label data-for="weight">Weight</label>
+        <input data-name="weight" type="number" inputmode="decimal" min="0" max="2000" step="any" required>
+      </div>
+      <button type="button" class="button button-secondary button-small remove-set"></button>
+      <p class="field-error" hidden></p>
+    </div>
+  </template>
+</body>
+</html>
